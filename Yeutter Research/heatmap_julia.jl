@@ -5,28 +5,42 @@ using PlotlyJS
 
 data = CSV.read("Yeutter Research/yeutter_data.csv", DataFrame)
 
-data.Value = parse.(Float64, data.Value)
+data.Value = [tryparse(Float64, val) === nothing ? NaN : parse(Float64, val) for val in data.Value]
 
 # IMPORT AND GRAVITY (CROP = GRO)
 
+# Filter data for imports, gravity model, and specific crop
 imports_gvty = filter(row -> row.I_E == "import" && row.Model == "gvty" && row.Crop == "gro", data)
 
-state_imports_gvty = by(imports_gvty, :State, Value = :Value => sum)
+# Group by state and sum values
+state_imports_gvty = combine(groupby(imports_gvty, :State), :Value => sum => :Value)
 
-fig = choropleth(state_imports_gvty, 
-                    locations=:State, 
-                    locationmode="USA-states",
-                    zmin=0, 
-                    zmax=0.1, 
-                    color=:Value, 
-                    scope="usa",
-                    title="Heatmap of Imports by State (Model: Gravity, Crop = Corn)",
-                    colorscale="Viridis")  
+# Ensure state codes are strings for PlotlyJS
+state_imports_gvty[!, :State] = string.(state_imports_gvty[!, :State])
 
-layout!(fig, width=800, height=600)
+# Create the choropleth trace
+trace = choropleth(
+    locations=state_imports_gvty.State,
+    z=state_imports_gvty.Value,
+    locationmode="USA-states",
+    colorscale="Viridis",
+    zmin=0,
+    zmax=0.1,
+    colorbar_title = "Value"
+)
 
-plot(fig)
+# Define the layout
+layout = Layout(
+    title="Heatmap of Imports by State (Model: Gravity, Crop = Corn)",
+    width=800,
+    height=600
+)
 
+# Create and display the figure using PlotlyJS explicitly
+fig = PlotlyJS.plot(trace, layout)
+
+# To display the plot, depending on your environment, you might directly use `fig` or you might need to use `display(fig)`.
+display(fig)
 
 # IMPORT AND SHARED (CROP = GRO)
 
