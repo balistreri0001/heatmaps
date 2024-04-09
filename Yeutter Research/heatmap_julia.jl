@@ -3,7 +3,7 @@ using CSV
 using Plots
 using PlotlyJS
 
-data = CSV.read("yeutter_data.csv", DataFrame)
+data = CSV.read("Yeutter Research/yeutter_data.csv", DataFrame)
 
 data.Value = parse.(Float64, data.Value)
 
