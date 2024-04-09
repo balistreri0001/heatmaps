@@ -33,7 +33,12 @@ trace = choropleth(
 layout = Layout(
     title="Heatmap of Imports by State (Model: Gravity, Crop = Corn)",
     width=800,
-    height=600
+    height=600,
+    geo=attr(
+        scope="usa",  # Ensure the map is focused on the USA
+        countrywidth=1,
+        subunitwidth=1
+    )
 )
 
 # Create and display the figure using PlotlyJS explicitly
