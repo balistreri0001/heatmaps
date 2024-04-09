@@ -2,6 +2,7 @@ using DataFrames
 using CSV
 using Plots
 using PlotlyJS
+using PlotlyBase
 
 data = CSV.read("Yeutter Research/yeutter_data.csv", DataFrame)
 
@@ -45,17 +46,18 @@ layout = Layout(
 fig = PlotlyJS.plot(trace, layout)
 
 # To display the plot, depending on your environment, you might directly use `fig` or you might need to use `display(fig)`.
-display(fig)
+# display(fig)
 
 # ###########################
 
-
-#= 
-
 # ************************** SHARED MODEL **************************
+# Assuming 'i_e', 'crop', and 'data' are predefined correctly
+crop = "wht"
+i_e = "import"
+
 export_shared = filter(row -> row.I_E == i_e && row.Model == "shrs" && row.Crop == crop, data)
 total_value = sum(export_shared.Value)
-average_value = 1
+average_value = 1.0
 
 all_states = unique(data.State)
 state_values = DataFrame(
@@ -63,51 +65,80 @@ state_values = DataFrame(
     Value = fill(average_value, length(all_states))
 )
 
-# Create the choropleth map using the uniform value
-fig = choropleth(state_values, 
-                    locations=:State, 
-                    locationmode="USA-states",
-                    color=:Value, 
-                    range_color=(0,2),
-                    scope="usa",
-                    title="Uniform Value Map for Exports (Model: SHRS, Crop = wht)",
-                    colorscale="Viridis")
+# Ensure state codes are strings for PlotlyJS
+state_values[!, :State] = string.(state_values[!, :State])
 
-layout!(fig, width=800, height=600, geo=(bgcolor="rgba(0,0,0,0)"))
+# Create the choropleth map
+trace = choropleth(
+    locations=state_values.State,
+    z=state_values.Value,
+    locationmode="USA-states",
+    colorscale="Viridis",
+    zmin=0,
+    zmax=2,
+    colorbar_title="Value"
+)
 
-plot(fig)
+# Define the layout
+layout = Layout(
+    title="Uniform Value Map for Exports (Model: SHRS, Crop = $crop)",
+    width=800,
+    height=600,
+    geo=attr(scope="usa", bgcolor="rgba(0,0,0,0)")
+)
+
+# Combine trace and layout
+fig = PlotlyJS.plot(trace, layout)
+display(fig)
+
 
 
 # ************************** GRAVITY AND PORT MODEL PERCENTAGES **************************
-gravity_exports = filter(row -> row.I_E == i_e && row.Model == "gvty" && row.Crop == crop, data)
-port_exports = filter(row -> row.I_E == i_e && row.Model == "port" && row.Crop == crop, data)
-
+# Calculate percentages
 gravity_exports.Gravity_Percentage = (gravity_exports.Value ./ average_value) .* 100
 port_exports.Port_Percentage = (port_exports.Value ./ average_value) .* 100
 
-# ************************** VISUALIZATION **************************
-fig_gravity = choropleth(gravity_exports, 
-                            locations=:State, 
-                            locationmode="USA-states",
-                            color=:Gravity_Percentage, 
-                            range_color=[0, 400],
-                            scope="usa",
-                            title="Gravity Model as Percentage of Shared Model by State",
-                            colorscale="Viridis")
+# Ensure state codes are strings
+gravity_exports[!, :State] = string.(gravity_exports[!, :State])
+port_exports[!, :State] = string.(port_exports[!, :State])
 
-fig_port = choropleth(port_exports, 
-                         locations=:State, 
-                         locationmode="USA-states",
-                         color=:Port_Percentage, 
-                         range_color=[0, 1200],
-                         scope="usa",
-                         title="Port Model as Percentage of Shared Model by State",
-                         colorscale="Viridis")
+# Gravity Model Visualization
+trace_gravity = choropleth(
+    locations=gravity_exports.State,
+    z=gravity_exports.Gravity_Percentage,
+    locationmode="USA-states",
+    colorscale="Viridis",
+    zmin=0,
+    zmax=400,
+    colorbar_title="Gravity Percentage"
+)
+layout_gravity = Layout(
+    title="Gravity Model as Percentage of Shared Model by State (Crop = $crop)",
+    width=800,
+    height=600,
+    geo=attr(scope="usa")
+)
+fig_gravity = PlotlyJS.plot(trace_gravity, layout_gravity)
+display(fig_gravity)
 
-layout!(fig_gravity, width=800, height=600)
-layout!(fig_port, width=800, height=600)
+# Port Model Visualization
+trace_port = choropleth(
+    locations=port_exports.State,
+    z=port_exports.Port_Percentage,
+    locationmode="USA-states",
+    colorscale="Viridis",
+    zmin=0,
+    zmax=1200,
+    colorbar_title="Port Percentage"
+)
+layout_port = Layout(
+    title="Port Model as Percentage of Shared Model by State (Crop = $crop)",
+    width=800,
+    height=600,
+    geo=attr(scope="usa")
+)
+fig_port = PlotlyJS.plot(trace_port, layout_port)
+display(fig_port)
 
-plot(fig_gravity), plot(fig_port)
 
-
- =#
+ 
