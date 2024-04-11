@@ -3,6 +3,7 @@ using CSV
 using Plots
 using PlotlyJS
 using PlotlyBase
+using FileIO
 
 data = CSV.read("Yeutter Research/yeutter_data.csv", DataFrame)
 
@@ -42,11 +43,10 @@ layout = Layout(
     )
 )
 
-# Create and display the figure using PlotlyJS explicitly
-fig = PlotlyJS.plot(trace, layout)
+# Combine trace and layout into a plot
+p = PlotlyJS.plot(trace, layout)
 
-# To display the plot, depending on your environment, you might directly use `fig` or you might need to use `display(fig)`.
-# display(fig)
+save("myplot.png", p)
 
 # ###########################
 
@@ -89,7 +89,7 @@ layout = Layout(
 
 # Combine trace and layout
 fig = PlotlyJS.plot(trace, layout)
-display(fig)
+# display(fig)
 
 
 
@@ -138,7 +138,7 @@ layout_port = Layout(
     geo=attr(scope="usa")
 )
 fig_port = PlotlyJS.plot(trace_port, layout_port)
-display(fig_port)
+# display(fig_port)
 
 
  
