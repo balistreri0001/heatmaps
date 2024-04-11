@@ -4,6 +4,7 @@ using Plots
 using PlotlyJS
 using PlotlyBase
 using FileIO
+using PlotlyLight
 
 data = CSV.read("Yeutter Research/yeutter_data.csv", DataFrame)
 
