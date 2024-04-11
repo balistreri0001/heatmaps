@@ -1,3 +1,7 @@
+begin
+    import Pkg
+    Pkg.add(; name = "Kaleido_jll", version = "0.1")
+end
 using DataFrames
 using CSV
 using Plots
