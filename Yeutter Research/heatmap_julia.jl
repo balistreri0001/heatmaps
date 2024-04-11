@@ -48,7 +48,6 @@ p = PlotlyJS.plot(trace, layout)
 
 save("myplot.png", p)
 
-# ###########################
 
 # ************************** SHARED MODEL **************************
 # Assuming 'i_e', 'crop', and 'data' are predefined correctly
@@ -94,6 +93,11 @@ fig = PlotlyJS.plot(trace, layout)
 
 
 # ************************** GRAVITY AND PORT MODEL PERCENTAGES **************************
+
+# Filter data
+gravity_exports = filter(row -> row.I_E == i_e && row.Model == "gvty" && row.Crop == crop, data)
+port_exports = filter(row -> row.I_E == i_e && row.Model == "port" && row.Crop == crop, data)
+
 # Calculate percentages
 gravity_exports.Gravity_Percentage = (gravity_exports.Value ./ average_value) .* 100
 port_exports.Port_Percentage = (port_exports.Value ./ average_value) .* 100
@@ -119,7 +123,13 @@ layout_gravity = Layout(
     geo=attr(scope="usa")
 )
 fig_gravity = PlotlyJS.plot(trace_gravity, layout_gravity)
-display(fig_gravity)
+# display(fig_gravity)
+
+# Combine trace and layout into a plot
+gravity_percent = PlotlyJS.plot(trace_gravity, layout_gravity)
+
+save("Gravity_Percent.png", gravity_percent)
+
 
 # Port Model Visualization
 trace_port = choropleth(
@@ -139,6 +149,11 @@ layout_port = Layout(
 )
 fig_port = PlotlyJS.plot(trace_port, layout_port)
 # display(fig_port)
+
+# Combine trace and layout into a plot
+port_percent = PlotlyJS.plot(trace_port, layout_port)
+
+save("Port_Percent.png", port_percent)
 
 
  
